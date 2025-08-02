@@ -1,0 +1,52 @@
+services:
+  # Serviço da Aplicação Next.js
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev 
+    ports:
+      - "3000:3000"
+    volumes:
+      - .:/app 
+      - /app/node_modules 
+    env_file:
+      - .env 
+    command: yarn dev 
+    depends_on:
+      db:
+        condition: service_healthy 
+
+  # Serviço do Banco de Dados PostgreSQL
+  db:
+    image: postgres:16-alpine
+    container_name: shelter_db_container
+    ports:
+      - "5450:5432"
+    volumes:
+      - db_data:/var/lib/postgresql/data 
+    env_file:
+      - .env 
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  # Serviço do PgAdmin para gerenciar o banco
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: pgadmin4_shelter
+    restart: always
+    ports:
+      - "5050:80"
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin 
+    env_file:
+      - .env 
+    depends_on:
+      - db
+
+volumes:
+  db_data:
+  pgadmin_data:
