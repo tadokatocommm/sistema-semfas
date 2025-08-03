@@ -2,18 +2,13 @@
 
 FROM node:20-alpine
 
-# Define o diretório de trabalho
 WORKDIR /app
 
-# Copia os arquivos de dependência e instala (usando yarn para consistência)
 COPY package.json yarn.lock* package-lock.json* ./
 RUN yarn install
 
-# Copia o resto do código da aplicação
 COPY . .
 
-# Expõe a porta que o Next.js usa
 EXPOSE 3000
 
-# Comando para iniciar o servidor de desenvolvimento com hot-reload
 CMD ["yarn", "dev"]

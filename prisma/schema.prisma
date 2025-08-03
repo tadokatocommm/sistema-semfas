@@ -1,0 +1,48 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model UnitType {
+  id    String @id @default(cuid())
+  name  String @unique // "ABRIGO", "CRAS", "CREAS"
+  units Unit[] 
+
+  @@map("unit_types")
+}
+
+model Unit {
+  id         String   @id @default(cuid())
+  name       String   @unique // "ABRIGO NÚBIA MARQUES"
+  users      User[]   
+
+  unitTypeId String
+  unitType   UnitType @relation(fields: [unitTypeId], references: [id])
+
+  @@map("units")
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  // Chave Estrangeira para a Unidade Específica
+  unitId String
+  unit   Unit   @relation(fields: [unitId], references: [id])
+
+  @@map("users")
+}
