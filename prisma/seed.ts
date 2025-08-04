@@ -1,11 +1,11 @@
-import { PrismaClient } from '../src/generated/prisma'; 
+// Ficheiro: prisma/seed.ts (Atualizado com todos os campos do utilizador)
+import { PrismaClient } from '../src/generated/prisma'; // Caminho de importação CORRETO
 import bcrypt from 'bcryptjs';
 
 const prisma = new PrismaClient();
 
 async function main() {
   console.log('Iniciando o processo de seeding...');
-
 
   console.log('Limpando dados antigos...');
   await prisma.user.deleteMany();
@@ -31,30 +31,35 @@ async function main() {
   const abrigoNubia = await prisma.unit.create({
     data: {
       name: 'ABRIGO NÚBIA MARQUES',
-      unitTypeId: abrigoType.id, 
+      unitTypeId: abrigoType.id,
     },
   });
 
   const crasCentro = await prisma.unit.create({
     data: {
       name: 'CRAS CENTRO',
-      unitTypeId: crasType.id, 
+      unitTypeId: crasType.id,
     },
   });
   console.log('Unidades Específicas criadas:', abrigoNubia.name, crasCentro.name);
 
-  console.log('Criando usuário administrador...');
+  console.log('Criando utilizador administrador...');
   const salt = bcrypt.genSaltSync(10);
-  const adminPasswordHash = bcrypt.hashSync('admin_password', salt); 
+  const adminPasswordHash = bcrypt.hashSync('admin_password', salt);
+
   const adminUser = await prisma.user.create({
     data: {
+      fullName: 'Administrador do Sistema',
+      cpf: '067.626.745-93',
+      state: 'Sergipe',
+      city: 'Aracaju',
       email: 'admin@shelter.com',
       passwordHash: adminPasswordHash,
       unitId: abrigoNubia.id, 
     },
   });
 
-  console.log('Usuário administrador criado:', adminUser.email);
+  console.log('Utilizador administrador criado:', adminUser.email);
   console.log('Seeding finalizado com sucesso!');
 }
 

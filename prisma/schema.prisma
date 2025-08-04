@@ -1,9 +1,6 @@
 // This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
   output   = "../src/generated/prisma"
@@ -16,16 +13,16 @@ datasource db {
 
 model UnitType {
   id    String @id @default(cuid())
-  name  String @unique // "ABRIGO", "CRAS", "CREAS"
-  units Unit[] 
+  name  String @unique
+  units Unit[]
 
   @@map("unit_types")
 }
 
 model Unit {
-  id         String   @id @default(cuid())
-  name       String   @unique // "ABRIGO NÚBIA MARQUES"
-  users      User[]   
+  id         String @id @default(cuid())
+  name       String @unique
+  users      User[]
 
   unitTypeId String
   unitType   UnitType @relation(fields: [unitTypeId], references: [id])
@@ -33,8 +30,13 @@ model Unit {
   @@map("units")
 }
 
+// ATUALIZADO: Tabela de Utilizadores com os novos campos
 model User {
   id           String   @id @default(cuid())
+  fullName     String   @map("full_name") // Nome Completo
+  cpf          String   @unique           // CPF 
+  state        String                     // Estado
+  city         String                     // Cidade
   email        String   @unique
   passwordHash String
   createdAt    DateTime @default(now()) @map("created_at")

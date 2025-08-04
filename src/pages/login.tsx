@@ -1,13 +1,67 @@
-import { useState, FormEvent } from 'react';
+import { useState, FormEvent, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import Head from 'next/head';
 
+interface UnitType {
+  id: string;
+  name: string;
+}
+
+interface Unit {
+  id: string;
+  name: string;
+}
 
 export default function LoginPage() {
-  const [email, setEmail] = useState('admin@smfas.com');
+  const [email, setEmail] = useState('admin@shelter.com');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  
+  const [unitTypes, setUnitTypes] = useState<UnitType[]>([]);
+  const [units, setUnits] = useState<Unit[]>([]);
+  const [selectedUnitType, setSelectedUnitType] = useState('');
+  
+  const [isLoadingTypes, setIsLoadingTypes] = useState(true);
+  const [isLoadingUnits, setIsLoadingUnits] = useState(false);
+
   const router = useRouter();
+
+  useEffect(() => {
+    const fetchUnitTypes = async () => {
+      try {
+        const response = await fetch('/api/units/types');
+        const data = await response.json();
+        setUnitTypes(data);
+      } catch (err) {
+        setError('Não foi possível carregar os tipos de unidade.');
+      } finally {
+        setIsLoadingTypes(false);
+      }
+    };
+    fetchUnitTypes();
+  }, []);
+
+  useEffect(() => {
+    if (!selectedUnitType) {
+      setUnits([]);
+      return;
+    }
+
+    const fetchUnits = async () => {
+      setIsLoadingUnits(true);
+      try {
+        const response = await fetch(`/api/units?typeId=${selectedUnitType}`);
+        const data = await response.json();
+        setUnits(data);
+      } catch (err) {
+        setError('Não foi possível carregar as unidades específicas.');
+      } finally {
+        setIsLoadingUnits(false);
+      }
+    };
+    fetchUnits();
+  }, [selectedUnitType]);
+
 
   const handleSubmit = async (event: FormEvent) => {
     event.preventDefault();
@@ -27,8 +81,7 @@ export default function LoginPage() {
       }
 
       localStorage.setItem('authToken', data.token);
-
-      router.push('/dashboard'); 
+      router.push('/dashboard');
 
     } catch (err: any) {
       setError(err.message);
@@ -52,26 +105,38 @@ export default function LoginPage() {
               <label htmlFor="unit-type" className="text-sm font-bold text-gray-600 tracking-wide">
                 Tipo de Unidade
               </label>
-              <input
+              <select
                 id="unit-type"
-                type="text"
-                value="ABRIGO"
-                readOnly
-                className="w-full p-2 mt-1 text-gray-700 bg-gray-200 border border-gray-300 rounded-md focus:outline-none"
-              />
+                value={selectedUnitType}
+                onChange={(e) => setSelectedUnitType(e.target.value)}
+                disabled={isLoadingTypes}
+                className="w-full p-2 mt-1 text-gray-900 border border-gray-300 rounded-md focus:border-blue-500 focus:ring-blue-500"
+              >
+                <option value="">{isLoadingTypes ? 'Carregando...' : 'Selecione o tipo'}</option>
+                {unitTypes.map((type) => (
+                  <option key={type.id} value={type.id}>
+                    {type.name}
+                  </option>
+                ))}
+              </select>
             </div>
             
             <div>
               <label htmlFor="specific-unit" className="text-sm font-bold text-gray-600 tracking-wide">
                 Unidade Específica
               </label>
-              <input
+              <select
                 id="specific-unit"
-                type="text"
-                value="ABRIGO NÚBIA MARQUES"
-                readOnly
-                className="w-full p-2 mt-1 text-gray-700 bg-gray-200 border border-gray-300 rounded-md focus:outline-none"
-              />
+                disabled={!selectedUnitType || isLoadingUnits}
+                className="w-full p-2 mt-1 text-gray-900 border border-gray-300 rounded-md focus:border-blue-500 focus:ring-blue-500"
+              >
+                <option value="">{isLoadingUnits ? 'Carregando...' : 'Selecione a unidade'}</option>
+                {units.map((unit) => (
+                  <option key={unit.id} value={unit.id}>
+                    {unit.name}
+                  </option>
+                ))}
+              </select>
             </div>
 
             <div>
