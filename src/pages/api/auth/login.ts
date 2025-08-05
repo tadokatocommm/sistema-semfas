@@ -11,10 +11,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(405).json({ message: 'Method not allowed' });
   }
 
-  const { email, password } = req.body;
+  const { email, password, unitId } = req.body;
 
-  if (!email || !password) {
-    return res.status(400).json({ message: 'E-mail e senha são obrigatórios.' });
+  if (!email || !password || !unitId) {
+    return res.status(400).json({ message: 'Unidade, e-mail e password são obrigatórios.' });
   }
 
   try {
@@ -33,6 +33,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(401).json({ message: 'Credenciais inválidas.' });
     }
 
+    if (user.unitId !== unitId) {
+      return res.status(403).json({ message: 'Utilizador não pertence à unidade selecionada.' }); 
+    }
+
     const isPasswordValid = await bcrypt.compare(password, user.passwordHash);
 
     if (!isPasswordValid) {
@@ -43,6 +47,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       {
         userId: user.id,
         email: user.email,
+        fullName: user.fullName,
         unitName: user.unit.name,
         unitTypeName: user.unit.unitType.name,
       },

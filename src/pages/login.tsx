@@ -20,7 +20,7 @@ export default function LoginPage() {
   const [unitTypes, setUnitTypes] = useState<UnitType[]>([]);
   const [units, setUnits] = useState<Unit[]>([]);
   const [selectedUnitType, setSelectedUnitType] = useState('');
-  
+  const [selectedUnit, setSelectedUnit] = useState(''); 
   const [isLoadingTypes, setIsLoadingTypes] = useState(true);
   const [isLoadingUnits, setIsLoadingUnits] = useState(false);
 
@@ -28,6 +28,7 @@ export default function LoginPage() {
 
   useEffect(() => {
     const fetchUnitTypes = async () => {
+      setIsLoadingTypes(true);
       try {
         const response = await fetch('/api/units/types');
         const data = await response.json();
@@ -42,11 +43,11 @@ export default function LoginPage() {
   }, []);
 
   useEffect(() => {
+    setSelectedUnit(''); 
     if (!selectedUnitType) {
       setUnits([]);
       return;
     }
-
     const fetchUnits = async () => {
       setIsLoadingUnits(true);
       try {
@@ -62,20 +63,23 @@ export default function LoginPage() {
     fetchUnits();
   }, [selectedUnitType]);
 
-
   const handleSubmit = async (event: FormEvent) => {
     event.preventDefault();
     setError('');
+
+    if (!selectedUnit) {
+      setError('Por favor, selecione uma unidade específica.');
+      return;
+    }
 
     try {
       const response = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ email, password, unitId: selectedUnit }),
       });
 
       const data = await response.json();
-
       if (!response.ok) {
         throw new Error(data.message || 'Falha no login');
       }
@@ -110,9 +114,9 @@ export default function LoginPage() {
                 value={selectedUnitType}
                 onChange={(e) => setSelectedUnitType(e.target.value)}
                 disabled={isLoadingTypes}
-                className="w-full p-2 mt-1 text-gray-900 border border-gray-300 rounded-md focus:border-blue-500 focus:ring-blue-500"
+                className="w-full p-2 mt-1 text-gray-900 bg-white border border-gray-300 rounded-md focus:border-blue-500 focus:ring-blue-500 disabled:bg-gray-200"
               >
-                <option value="">{isLoadingTypes ? 'Carregando...' : 'Selecione o tipo'}</option>
+                <option value="">{isLoadingTypes ? 'A carregar...' : 'Selecione o tipo'}</option>
                 {unitTypes.map((type) => (
                   <option key={type.id} value={type.id}>
                     {type.name}
@@ -127,10 +131,12 @@ export default function LoginPage() {
               </label>
               <select
                 id="specific-unit"
+                value={selectedUnit} 
+                onChange={(e) => setSelectedUnit(e.target.value)} 
                 disabled={!selectedUnitType || isLoadingUnits}
-                className="w-full p-2 mt-1 text-gray-900 border border-gray-300 rounded-md focus:border-blue-500 focus:ring-blue-500"
+                className="w-full p-2 mt-1 text-gray-900 bg-white border border-gray-300 rounded-md focus:border-blue-500 focus:ring-blue-500 disabled:bg-gray-200"
               >
-                <option value="">{isLoadingUnits ? 'Carregando...' : 'Selecione a unidade'}</option>
+                <option value="">{isLoadingUnits ? 'A carregar...' : 'Selecione a unidade'}</option>
                 {units.map((unit) => (
                   <option key={unit.id} value={unit.id}>
                     {unit.name}
